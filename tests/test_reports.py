@@ -1,4 +1,3 @@
-
 from datetime import datetime
 from unittest.mock import patch
 
@@ -79,7 +78,6 @@ def test_writing_report_to_file_by_user_error(mock_to_excel, mock_transactions, 
     assert result is None
 
 
-# Тесты обработки ошибок в spending_by_category
 def test_spending_by_category_invalid_date_format(mock_transactions, caplog):
     result = spending_by_category(mock_transactions, "Книги", "invalid-date")
     assert "Ошибка функции" in caplog.text

@@ -3,7 +3,7 @@ import logging
 from datetime import datetime
 
 from src.config import data_file, logs_path, root_path
-from src.services import cashback, search_word, search_number, search_name
+from src.services import cashback, search_name, search_number, search_word
 from src.utils import (
     cards_info,
     currency_rates,
@@ -18,36 +18,36 @@ from src.utils import (
 )
 
 logging.basicConfig(
-    filename=f'{logs_path}/logs.log',
-    encoding='utf-8',
-    filemode='w',
+    filename=f"{logs_path}/logs.log",
+    encoding="utf-8",
+    filemode="w",
     level=logging.DEBUG,
-    format='%(asctime)s - %(filename)s - %(levelname)s: %(message)s',
+    format="%(asctime)s - %(filename)s - %(levelname)s: %(message)s",
 )
 
-logger_util = logging.getLogger('app.services')
+logger_util = logging.getLogger("app.services")
 
 
 def greeting() -> str | None:
     """Функция, формирующая приветствие в зависимости от текущего времени."""
-    logger_util.info('Запуск функции формирующей приветствие в зависимости от текущего времени.')
-    greeting_dict = ['Доброе утро', 'Добрый день', 'Добрый вечер', 'Доброй ночи']
+    logger_util.info("Запуск функции формирующей приветствие в зависимости от текущего времени.")
+    greeting_dict = ["Доброе утро", "Добрый день", "Добрый вечер", "Доброй ночи"]
     current_hour = datetime.now().hour
     if 6 <= current_hour <= 11:
-        logger_util.info('Приветствие сформировано корректно.')
+        logger_util.info("Приветствие сформировано корректно.")
         return greeting_dict[0]
     elif 12 <= current_hour <= 17:
-        logger_util.info('Приветствие сформировано корректно.')
+        logger_util.info("Приветствие сформировано корректно.")
         return greeting_dict[1]
     elif 18 <= current_hour <= 23:
-        logger_util.info('Приветствие сформировано корректно.')
+        logger_util.info("Приветствие сформировано корректно.")
         return greeting_dict[2]
     elif 0 <= current_hour <= 5:
-        logger_util.info('Приветствие сформировано корректно.')
+        logger_util.info("Приветствие сформировано корректно.")
         return greeting_dict[3]
     else:
-        logger_util.info('Приветствие не сформировано.')
-        print('Ошибка определения времени суток')
+        logger_util.info("Приветствие не сформировано.")
+        print("Ошибка определения времени суток")
         return None
 
 
@@ -102,7 +102,9 @@ def json_answer_events(start_date_str: str, diapason: str = "M") -> str:
             "main": expenses_by_category(sorted_by_date(read_info(data_file), start_date_str, diapason)),
         },
         "income": {
-            "total_amount": round(float(total_income(sorted_by_date(read_info(data_file), start_date_str, diapason))), 2),
+            "total_amount": round(
+                float(total_income(sorted_by_date(read_info(data_file), start_date_str, diapason))), 2
+            ),
             "main": income_by_category(sorted_by_date(read_info(data_file), start_date_str, diapason)),
         },
         "currency_rates": currency_rates(),
@@ -133,11 +135,11 @@ def json_answer_cashback(year_str: str, month_str: str) -> str:
 
 
 def json_answer_search(search_data: str) -> str | None:
-    if search_data == 'cellphone':
-        result = search_number(read_info(data_file), 'cellphone')
+    if search_data == "cellphone":
+        result = search_number(read_info(data_file), "cellphone")
         return result
-    elif search_data == 'transfer':
-        result = search_name(read_info(data_file), 'transfer')
+    elif search_data == "transfer":
+        result = search_name(read_info(data_file), "transfer")
         return result
     else:
         result = search_word(read_info(data_file), search_data)
