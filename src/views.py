@@ -142,7 +142,3 @@ def json_answer_search(search_data: str) -> str | None:
     else:
         result = search_word(read_info(data_file), search_data)
         return result
-
-
-
-print(json_answer_search('авиа'))
