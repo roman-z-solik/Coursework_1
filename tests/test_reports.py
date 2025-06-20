@@ -1,8 +1,4 @@
-from datetime import datetime
 from unittest.mock import patch
-
-import pandas as pd
-import pytest
 
 from src.config import root_path
 from src.reports import spending_by_category, writing_report_to_file, writing_report_to_file_by_user

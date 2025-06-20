@@ -120,43 +120,43 @@ def cards_info(df: pd.DataFrame) -> list:
         кешбэк (1 рубль на каждые 100 рублей).
         Возвращает список.
     """
-    logger_util.info('Запуск функции сбора информации по кредитным картам для страницы Main')
-    df = df[df['Сумма платежа'] < 0]
-    df = df.loc[:, ['Номер карты', 'Сумма платежа']].groupby('Номер карты').sum().reset_index()
-    df['Номер карты'] = df['Номер карты'].str.slice(1)
-    df['Сумма платежа'] = df['Сумма платежа'] * -1
-    df['Сумма платежа'] = df['Сумма платежа'].round(2)
-    df = df.assign(cashback=(df['Сумма платежа'] / 100))
-    df['cashback'] = df['cashback'].round(2)
-    df.rename(columns={'Номер карты': 'last_digits'}, inplace=True)
-    df.rename(columns={'Сумма платежа': 'total_spent'}, inplace=True)
-    df_list = df.to_dict(orient='records')
-    logger_util.info('Информация по кредитным картам для страницы Main собрана корректно')
+    logger_util.info("Запуск функции сбора информации по кредитным картам для страницы Main")
+    df = df[df["Сумма платежа"] < 0]
+    df = df.loc[:, ["Номер карты", "Сумма платежа"]].groupby("Номер карты").sum().reset_index()
+    df["Номер карты"] = df["Номер карты"].str.slice(1)
+    df["Сумма платежа"] = df["Сумма платежа"] * -1
+    df["Сумма платежа"] = df["Сумма платежа"].round(2)
+    df = df.assign(cashback=(df["Сумма платежа"] / 100))
+    df["cashback"] = df["cashback"].round(2)
+    df.rename(columns={"Номер карты": "last_digits"}, inplace=True)
+    df.rename(columns={"Сумма платежа": "total_spent"}, inplace=True)
+    df_list = df.to_dict(orient="records")
+    logger_util.info("Информация по кредитным картам для страницы Main собрана корректно")
     return df_list
 
 
 def top_transactions(df: pd.DataFrame) -> list:
     """Функция, которая принимает данные и выдает информацию - топ-5 транзакций по сумме платежа."""
-    logger_util.info('Запуск функции сбора топ-5 транзакций по сумме платежа для страницы Main')
-    df = df[df['Сумма платежа'] < 0]
-    df = df.sort_values(by='Сумма платежа', ascending=True)
-    df = df.loc[:, ['Дата операции', 'Сумма платежа', 'Категория', 'Описание']]
+    logger_util.info("Запуск функции сбора топ-5 транзакций по сумме платежа для страницы Main")
+    df = df[df["Сумма платежа"] < 0]
+    df = df.sort_values(by="Сумма платежа", ascending=True)
+    df = df.loc[:, ["Дата операции", "Сумма платежа", "Категория", "Описание"]]
     df = df[:5]
-    df['Сумма платежа'] = df['Сумма платежа'] * -1
-    df['Дата операции'] = df['Дата операции'].str.slice(0, 10)
-    df.rename(columns={'Дата операции': 'date'}, inplace=True)
-    df.rename(columns={'Сумма платежа': 'amount'}, inplace=True)
-    df.rename(columns={'Категория': 'category'}, inplace=True)
-    df.rename(columns={'Описание': 'description'}, inplace=True)
-    df_list = df.to_dict(orient='records')
-    logger_util.info('Топ-5 транзакций по сумме платежа для страницы Main собрана корректно')
+    df["Сумма платежа"] = df["Сумма платежа"] * -1
+    df["Дата операции"] = df["Дата операции"].str.slice(0, 10)
+    df.rename(columns={"Дата операции": "date"}, inplace=True)
+    df.rename(columns={"Сумма платежа": "amount"}, inplace=True)
+    df.rename(columns={"Категория": "category"}, inplace=True)
+    df.rename(columns={"Описание": "description"}, inplace=True)
+    df_list = df.to_dict(orient="records")
+    logger_util.info("Топ-5 транзакций по сумме платежа для страницы Main собрана корректно")
     return df_list
 
 
 def currency_rates() -> list | str:
     """Функция получения курса валют"""
     try:
-        logger_util.info('Запуск функции получения курса валют')
+        logger_util.info("Запуск функции получения курса валют")
         valute_list = read_user_settings("user_currencies")
         data = requests.get("https://www.cbr-xml-daily.ru/daily_json.js").json()
         data = data["Valute"]
@@ -250,7 +250,7 @@ def total_income(df: pd.DataFrame) -> Any:
     return round(total, 2)
 
 
-def income_by_category(df: pd.DataFrame) -> list[dict[Hashable, Any]]:
+def income_by_category(df: pd.DataFrame) -> list:
     """
     Функция, формирующая раздел «Основные», в котором поступления по
     категориям отсортированы по убыванию.

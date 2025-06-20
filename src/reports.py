@@ -26,7 +26,6 @@ def writing_report_to_file(func):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-
         try:
             result = func(*args, **kwargs)
             result.to_excel(root_path / "report.xlsx")
@@ -38,7 +37,6 @@ def writing_report_to_file(func):
                 f"Ошибка функции{func.__name__}: {e}. Inputs: {args}, {kwargs} в функции writing_report_to_file"
             )
             result = None
-
         return result
 
     return wrapper
@@ -52,7 +50,6 @@ def writing_report_to_file_by_user(filename="report.xlsx"):
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-
             try:
                 result = func(*args, **kwargs)
                 result.to_excel(root_path / filename)
@@ -64,7 +61,6 @@ def writing_report_to_file_by_user(filename="report.xlsx"):
                     f"Ошибка функции{func.__name__}: {e}. Inputs: {args}, {kwargs} в writing_report_to_file_by_user"
                 )
                 result = None
-
             return result
 
         return wrapper
