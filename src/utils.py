@@ -14,14 +14,14 @@ load_dotenv()
 api_key = os.getenv("Alpha_Vantage_API_KEY")
 
 logging.basicConfig(
-    filename=f"{logs_path}/logs.log",
-    encoding="utf-8",
-    filemode="w",
+    filename=f'{logs_path}/logs.log',
+    encoding='utf-8',
+    filemode='w',
     level=logging.DEBUG,
-    format="%(asctime)s - %(filename)s - %(levelname)s: %(message)s",
+    format='%(asctime)s - %(filename)s - %(levelname)s: %(message)s',
 )
 
-logger_util = logging.getLogger("app.utils")
+logger_util = logging.getLogger('app.services')
 
 
 def read_info(path_xls: str) -> pd.DataFrame | None:
@@ -90,7 +90,7 @@ def output_date(date_str: str, diapason: str = 'M') -> datetime | str:
         return 'Ошибка даты'
 
 
-def sorted_date(df: pd.DataFrame, date_str: str, diapason: str = "M") -> pd.DataFrame:
+def sorted_by_date(df: pd.DataFrame, date_str: str, diapason: str = "M") -> pd.DataFrame:
     """
     Функция, которая принимает данные, конечную дату и диапазон и выдает все операции
     в этом диапазоне (W - неделя, M - месяц, Y = год, All = все опрерации)
