@@ -271,13 +271,3 @@ def income_by_category(df: pd.DataFrame) -> list[dict[Hashable, Any]]:
         x["amount"] = round(x["amount"], 2)
     logger_util.info("Подсчет всех поступлений за период по категориям успешен")
     return df_list
-
-
-# print(read_info(f"{root_path}/data/operations.xlsx"))
-# print(read_user_settings('user_stocks'))
-# print(sorted_date(read_info(data_file),'2021-12-07 14:55:21'))
-# print(cards_info(sorted_date(read_info(data_file),'2021-12-07 14:55:21')))
-# print(top_transactions(sorted_date(read_info(data_file),'2021-12-07 14:55:21')))
-# print(currency_rates())
-# print(stocks_prices())
-# print(income_by_category(sorted_date(read_info(data_file),'2021-12-07 14:55:21')))

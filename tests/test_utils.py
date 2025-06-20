@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
-from unittest.mock import patch
-from src.utils import read_info, read_user_settings, sorted_by_date, cards_info, top_transactions
+from unittest.mock import patch, MagicMock
+from src.utils import read_info, read_user_settings, sorted_by_date, cards_info, top_transactions, currency_rates, total_expenses, total_income, expenses_by_category, income_by_category
 
 
 @patch('pandas.read_excel')
@@ -108,7 +108,7 @@ def test_cards_info(mock_df):
         {'last_digits': '5678', 'total_spent': 700.0, 'cashback': 7.0}
     ]
     result = cards_info(mock_df)
-    assert result != expected_result
+    assert result == expected_result
 
 
 def test_cards_info_with_no_negative_payments():
@@ -136,25 +136,11 @@ def test_cards_info_large_sums():
         {'last_digits': '5678', 'total_spent': 20000.0, 'cashback': 200.0}
     ]
     result = cards_info(df)
-    print(result)
     assert result == expected_result
 
 
-@pytest.fixture
-def mock_df():
-    # Создание фиктивных данных для теста
-    data = [
-        {"Дата операции": "2023-01-01 12:00:00", "Сумма платежа": -100, "Категория": "Еда", "Описание": "Покупка продуктов"},
-        {"Дата операции": "2023-01-02 13:00:00", "Сумма платежа": -200, "Категория": "Развлечения", "Описание": "Кино"},
-        {"Дата операции": "2023-01-03 14:00:00", "Сумма платежа": -300, "Категория": "Транспорт", "Описание": "Такси"},
-        {"Дата операции": "2023-01-04 15:00:00", "Сумма платежа": -400, "Категория": "Одежда", "Описание": "Новая куртка"},
-        {"Дата операции": "2023-01-05 16:00:00", "Сумма платежа": -500, "Категория": "Путешествия", "Описание": "Поездка"},
-        {"Дата операции": "2023-01-06 17:00:00", "Сумма платежа": 600, "Категория": "Доход", "Описание": "Зарплата"}
-    ]
-    return pd.DataFrame(data)
-
-def test_top_transactions(mock_df):
-    result = top_transactions(mock_df)
+def test_top_transactions(mock_df1):
+    result = top_transactions(mock_df1)
     expected_result = [
         {"date": "2023-01-05", "amount": 500, "category": "Путешествия", "description": "Поездка"},
         {"date": "2023-01-04", "amount": 400, "category": "Одежда", "description": "Новая куртка"},
@@ -184,3 +170,187 @@ def test_top_transactions_no_expenditures():
     })
     result = top_transactions(no_expenses_df)
     assert result == []
+
+
+def test_currency_rates_request_exception(
+        mock_logger, mock_read_user_settings, mock_requests_get
+):
+    from requests.exceptions import RequestException
+    mock_read_user_settings.return_value = ["USD"]
+    mock_requests_get.side_effect = RequestException("Network error")
+    result = currency_rates()
+    assert "Ошибка получения курса валют" in result
+    mock_logger.error.assert_called_with(
+        f"Ошибка получения курса валют. Код ошибки: {RequestException('Network error')}"
+    )
+
+
+def test_currency_rates_keyerror_or_typeerror(
+        mock_logger, mock_read_user_settings, mock_requests_get
+):
+    invalid_data = {"InvalidKey": {}}
+    mock_read_user_settings.return_value = ["USD"]
+    response_mock = MagicMock()
+    response_mock.json.return_value = invalid_data
+    mock_requests_get.return_value = response_mock
+    result = currency_rates()
+    assert "Ошибка получения курса валют. Код ошибки 'Valute'" in result
+
+
+def test_total_expenses_positive_and_negative_values(mock_logger):
+    data = {
+        "Сумма платежа": [100, -50, -20, 30]
+    }
+    df = pd.DataFrame(data)
+    result = total_expenses(df)
+    assert result == 70
+
+
+def test_total_expenses_all_positive(mock_logger):
+    data = {
+        "Сумма платежа": [10, 20, 30]
+    }
+    df = pd.DataFrame(data)
+    result = total_expenses(df)
+    assert result == 0
+
+
+def test_total_expenses_all_negative(mock_logger):
+    data = {
+        "Сумма платежа": [-10, -20, -30]
+    }
+    df = pd.DataFrame(data)
+    result = total_expenses(df)
+    assert result == 60
+
+
+def test_total_expenses_with_nan_values(mock_logger):
+    data = {
+        "Сумма платежа": [100, None, -50, float('nan')]
+    }
+    df = pd.DataFrame(data)
+    result = total_expenses(df)
+    assert result == 50
+
+
+def test_logging_calls_expenses(mock_logger):
+    data = {
+        "Сумма платежа": [100, -50]
+    }
+    df = pd.DataFrame(data)
+    total_expenses(df)
+    mock_logger.info.assert_any_call("Запуск функции подсчета суммы всех расходов за период")
+    mock_logger.info.assert_any_call("Подсчет суммы всех расходов за период успешен")
+
+
+def test_total_income_positive_and_negative_values(mock_logger):
+    data = {
+        "Сумма платежа": [100, -50, 20, 30]
+    }
+    df = pd.DataFrame(data)
+    result = total_income(df)
+    assert result == 150
+
+
+def test_total_income_all_negative(mock_logger):
+    data = {
+        "Сумма платежа": [-10, -20, -30]
+    }
+    df = pd.DataFrame(data)
+    result = total_income(df)
+    assert result == 0
+
+
+def test_total_income_all_positive(mock_logger):
+    data = {
+        "Сумма платежа": [10, 20, 30]
+    }
+    df = pd.DataFrame(data)
+    result = total_income(df)
+    assert result == 60
+
+
+def test_total_income_with_nan_values(mock_logger):
+    data = {
+        "Сумма платежа": [100, None, -50, float('nan')]
+    }
+    df = pd.DataFrame(data)
+    result = total_income(df)
+    assert result == 100
+
+
+def test_logging_calls_income(mock_logger):
+    data = {
+        "Сумма платежа": [100, -50]
+    }
+    df = pd.DataFrame(data)
+    total_income(df)
+    mock_logger.info.assert_any_call("Запуск функции подсчета суммы всех поступлений за период")
+    mock_logger.info.assert_any_call("Подсчет суммы всех поступлений за период успешен")
+
+
+def test_expenses_with_no_negative_values(mock_logger):
+    data = {
+        "Сумма платежа": [100, 200],
+        "Категория": ["A", "B"]
+    }
+    df = pd.DataFrame(data)
+    result = expenses_by_category(df)
+    assert len(result) == 1
+    assert result[0]["category"] == "Остальное"
+    assert result[0]["amount"] == 0.00
+
+
+def test_logging_calls_expenses_by_category(mock_logger):
+    data = {
+        "Сумма платежа": [-100],
+        "Категория": ["Test"]
+    }
+    df = pd.DataFrame(data)
+    expenses_by_category(df)
+
+
+def test_income_by_category_basic(mock_logger):
+    data = {
+        "Сумма платежа": [100, 50, -200, 300],
+        "Категория": ["Категория1", "Категория2", "Категория1", "Категория3"]
+    }
+    df = pd.DataFrame(data)
+    result = income_by_category(df)
+    expected = [
+        {"category": "Категория3", "amount": 300.00},
+        {"category": "Категория1", "amount": 100.00},
+        {"category": "Категория2", "amount": 50.00}
+    ]
+    assert result[:3] == expected
+
+
+def test_income_with_no_positive_values(mock_logger):
+    data = {
+        "Сумма платежа": [-100, -200],
+        "Категория": ["A", "B"]
+    }
+    df = pd.DataFrame(data)
+    result = income_by_category(df)
+    assert len(result) == 1
+    assert result[0]["category"] == "Остальное"
+    assert result[0]["amount"] == 0.00
+
+
+def test_income_with_nan_and_zero(mock_logger):
+    data = {
+        "Сумма платежа": [float('nan'), 50, 0],
+        "Категория": ["X", "Y", "Z"]
+    }
+    df = pd.DataFrame(data)
+    result = income_by_category(df)
+    assert any(item["category"] == "Y" and item["amount"] == 50.00 for item in result)
+
+
+def test_logging_calls(mock_logger):
+    data = {
+        "Сумма платежа": [100],
+        "Категория": ["Test"]
+    }
+    df = pd.DataFrame(data)
+    income_by_category(df)
